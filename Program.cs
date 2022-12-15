@@ -1,3 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-Console.WriteLine("Hello, World!");
+using JuleSudoku;
+
+var board = new Board();
+
+var initialValidation = Validator.ValidateBoard(board);
+
+Console.WriteLine(initialValidation ? "Passed initial validation." : "Impossible!");
