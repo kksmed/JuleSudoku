@@ -1,4 +1,3 @@
 # Jule "sudoku"
 
-## Opgave
-![image](opgave beskrivelse.png)
+![assignment](./opgave%20beskrivelse.png)
