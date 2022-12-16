@@ -10,24 +10,24 @@ internal static class Validator
     public static bool ValidateBoard(Board board)
         => ValidateLocked(board) && ValidateRows(board) && ValidateColumns(board) && ValidatesDiagonals(board);
 
-    public static bool ValidateField(Board board, Field field) =>
-        ValidateLine(board.Rows[field.Row]) && 
-        ValidateLine(board.Columns[field.Column]) &&
-        board.GetDiagonals(field).All(ValidateLine);
+    public static bool ValidateField(Board board, Field field, List<int> lowestAvailableValues) =>
+        ValidateLine(board.Rows[field.Row], lowestAvailableValues) && 
+        ValidateLine(board.Columns[field.Column], lowestAvailableValues) &&
+        board.GetDiagonals(field).All(x => ValidateLine(x, lowestAvailableValues));
 
-    private static bool ValidateRows(Board board) => board.Rows.All(ValidateLine);
+    private static bool ValidateRows(Board board) => board.Rows.All(x => ValidateLine(x, Enumerable.Range(1, 5)));
 
-    private static bool ValidateColumns(Board board) => board.Columns.All(ValidateLine);
+    private static bool ValidateColumns(Board board) => board.Columns.All(x => ValidateLine(x, Enumerable.Range(1, 5)));
 
-    private static bool ValidatesDiagonals(Board board) => board.Diagonals.All(ValidateLine);
+    private static bool ValidatesDiagonals(Board board) =>
+        board.Diagonals.All(x => ValidateLine(x, Enumerable.Range(1, 5)));
     
-    private static bool ValidateLine(int?[] line)
+    private static bool ValidateLine(int?[] line, IEnumerable<int> lowestAvailableValues)
     {
         var sum = line.Sum();
         if (sum > ExpectedSum) return false;
 
-        var i = 1;
-        var unassignedMinSum = line.Where(x => !x.HasValue).Select(_ => i++).Sum();
+        var unassignedMinSum = lowestAvailableValues.Take(line.Count(x => !x.HasValue)).Sum();
         if (sum + unassignedMinSum > ExpectedSum) return false;
         
         return true;

@@ -4,7 +4,7 @@ internal static class Solver
 {
     public static void Solve(Board board)
     {
-        var availableValues = Enumerable.Range(1, 25).ToList();
+        var availableValues = Enumerable.Range(1, 25).Reverse().ToList();
         var predeterminedValues = board.Locked.Select(board.GetField);
         availableValues.RemoveAll(x => predeterminedValues.Contains(x));
 
@@ -17,8 +17,10 @@ internal static class Solver
         {
             var value = availableValues[i];
             board.SetField(value, field);
-            if (!Validator.ValidateField(board, field)) 
+            if (!Validator.ValidateField(board, field, availableValues.TakeLast(5).Reverse().ToList())) 
                 continue;
+            
+            // Console.WriteLine($"Trying {value} for ({field})");
             
             availableValues.RemoveAt(i);
             var nextField = FindNextField(board, field);
