@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace JuleSudoku;
 
 internal class Board
@@ -11,47 +13,26 @@ internal class Board
         
     public Board(params (int value, Field field)[] predeterminedFields)
     {
-        Rows = new[]
-        {
-            new int?[] { null, null, 1, null, 7 },
-            new int?[] { 16, null, null, null, 3 },
-            new int?[] { null, 5, 18, null, null },
-            new int?[] { null, 21, null, null, null },
-            new int?[] { null, null, null, null, 11 },
-        };
-
-        Columns  = new[]
-        {
-            new int?[] { null, 16, null, null, null },
-            new int?[] { null, null, 5, 21, null },
-            new int?[] { 1, null, 18, null, null },
-            new int?[] { null, null, null, null, null },
-            new int?[] { 7, 3, null, null, 11 },
-        };
-
-        Diagonals  = new[]
-        {
-            new int?[] { null, null, 18, null, 11 },
-            new int?[] { null, 21, 18, null, 7 },
-        };
-
-        Locked = new Field[] {
-            new(0, 2),
-            new(0, 4),
-            new(1, 0),
-            new(1, 4),
-            new(2, 1),
-            new(2, 2),
-            new(3, 1),
-            new(4, 4)
-        };
+        Rows = Enumerable.Range(0, Size).Select(_ => Enumerable.Repeat<int?>(null, Size).ToArray()).ToArray();
+        Columns = Enumerable.Range(0, Size).Select(_ => Enumerable.Repeat<int?>(null, Size).ToArray()).ToArray();
+        Diagonals = Enumerable.Range(0, 2).Select(_ => Enumerable.Repeat<int?>(null, Size).ToArray()).ToArray();
+        
+        foreach (var (value, field) in predeterminedFields) 
+            InternalSetField(value, field);
+        
+        Locked = predeterminedFields.Select(x => x.field).ToArray();
     }
 
     public void SetField(int value, Field field)
     {
         if (Locked.Contains(field))
             throw new ArgumentException("Field is predetermined and cannot be set.", nameof(field));
-            
+
+        InternalSetField(value, field);
+    }
+
+    private void InternalSetField(int value, Field field)
+    {
         Rows[field.Row][field.Column] = value;
         Columns[field.Column][field.Row] = value;
 
@@ -89,4 +70,10 @@ internal class Board
             yield return Diagonals[1];
     }
 
+    public override string ToString()
+    {
+        return string.Join(Environment.NewLine,
+            Rows.Select(x =>
+                string.Join(" | ", x.Select(y => (y?.ToString(CultureInfo.InvariantCulture) ?? "").PadLeft(2)))));
+    }
 }
