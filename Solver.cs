@@ -2,6 +2,8 @@ namespace JuleSudoku;
 
 internal static class Solver
 {
+    private static readonly List<(int Value, Field field)> Log = new();
+
     public static void Solve(Board board)
     {
         var availableValues = Enumerable.Range(1, 25).Reverse().ToList();
@@ -19,7 +21,8 @@ internal static class Solver
             board.SetField(value, field);
             if (!Validator.ValidateField(board, field, availableValues.TakeLast(5).Reverse().ToList())) 
                 continue;
-            
+
+            Log.Add((value, field));
             // Console.WriteLine($"Trying {value} for ({field})");
             
             availableValues.RemoveAt(i);
