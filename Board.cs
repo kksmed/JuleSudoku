@@ -33,4 +33,23 @@ internal class Board
             new int?[] { null, 21, 18, null, 7 },
         };
     }
+
+    public void SetField(int value, Field field)
+    {
+        Rows[field.Row][field.Column] = value;
+        Columns[field.Column][field.Row] = value;
+
+        if (field.TryGetDiagonal(out var diagonal))
+            Diagonals[diagonal.Value][field.Column] = value;
+    }
+
+    public void ResetField(Field field)
+    {
+        Rows[field.Row][field.Column] = null;
+        Columns[field.Column][field.Row] = null;
+
+        if (field.TryGetDiagonal(out var diagonal))
+            Diagonals[diagonal.Value][field.Column] = null;
+        
+    }
 }
