@@ -8,16 +8,15 @@ internal class Board
     public int?[][] Columns { get; }
     public int?[][] Diagonals { get; }
 
-    private readonly Field[] _locked = new[]
-    {
-        new Field(0, 2),
-        new Field(0, 4),
-        new Field(1, 0),
-        new Field(1, 4),
-        new Field(2, 1),
-        new Field(2, 2),
-        new Field(3, 1),
-        new Field(4, 4)
+    private readonly Field[] _locked = {
+        new(0, 2),
+        new(0, 4),
+        new(1, 0),
+        new(1, 4),
+        new(2, 1),
+        new(2, 2),
+        new(3, 1),
+        new(4, 4)
     };
 
     public Board(params (int value, Field field)[] predeterminedFields)
@@ -68,6 +67,5 @@ internal class Board
 
         if (field.TryGetDiagonal(out var diagonal))
             Diagonals[diagonal.Value][field.Column] = null;
-        
     }
 }
