@@ -6,7 +6,8 @@ var board = new Board();
 
 var initialValidation = Validator.ValidateBoard(board);
 
-Console.WriteLine(initialValidation ? "Passed initial validation." : "Impossible!");
+if (!initialValidation)
+    throw new InvalidOperationException("Invalid initial board.");
 
 Solver.Solve(board);
 

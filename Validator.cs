@@ -8,7 +8,15 @@ internal static class Validator
     private static readonly int ExpectedSum = Enumerable.Range(1, Board.Size * Board.Size).Sum() / Board.Size;
 
     public static bool ValidateBoard(Board board)
-        => ValidateLocked(board) && ValidateRows(board) && ValidateColumns(board) && ValidatesDiagonals(board);
+        => ValidateLocked(board) && ValidateRows(board) && ValidateColumns(board) && ValidateDiagonals(board) && ValidateRowsAndColumns(board);
+
+    private static bool ValidateRowsAndColumns(Board board)
+    {
+        for (var row = 0; row < Board.Size; row++)
+        for (var column = 0; column < Board.Size; column++) 
+            if (board.Rows[row][column] != board.Columns[column][row]) return false;
+        return true;
+    }
 
     public static bool ValidateField(Board board, Field field, List<int> lowestAvailableValues) =>
         ValidateLine(board.Rows[field.Row], lowestAvailableValues) && 
@@ -19,7 +27,7 @@ internal static class Validator
 
     private static bool ValidateColumns(Board board) => board.Columns.All(x => ValidateLine(x, Enumerable.Range(1, 5)));
 
-    private static bool ValidatesDiagonals(Board board) =>
+    private static bool ValidateDiagonals(Board board) =>
         board.Diagonals.All(x => ValidateLine(x, Enumerable.Range(1, 5)));
     
     private static bool ValidateLine(int?[] line, IEnumerable<int> lowestAvailableValues)
