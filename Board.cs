@@ -7,7 +7,6 @@ internal class Board
     public int?[][] Rows { get; }
     public int?[][] Columns { get; }
     public int?[][] Diagonals { get; }
-    public (int Index, Diagonals Diagonal)[] DiagonalInfos { get; }
     public Field[] Locked { get; }
         
     public Board(params (int value, Field field)[] predeterminedFields)
@@ -35,8 +34,6 @@ internal class Board
             new int?[] { null, null, null, null, 11 },
             new int?[] { null, 21, 18, null, 7 },
         };
-        DiagonalInfos = new[]
-            { (0, JuleSudoku.Diagonals.BottomLeftToTopRight), (1, JuleSudoku.Diagonals.TopLeftToBottomRight) };
 
         Locked = new Field[] {
             new(0, 2),
@@ -58,12 +55,8 @@ internal class Board
         Rows[field.Row][field.Column] = value;
         Columns[field.Column][field.Row] = value;
 
-        var onDiagonals = field.GetDiagonals();
-        foreach (var diagonalIndex in DiagonalInfos.Where(x => (onDiagonals & x.Diagonal) == x.Diagonal)
-                     .Select(x => x.Index))
-        {
-            Diagonals[diagonalIndex][field.Column] = value;
-        }
+        foreach (var diagonal in GetDiagonals(field))
+            diagonal[field.Column] = value;
     }
 
     public int GetField(Field field)
@@ -83,11 +76,17 @@ internal class Board
         Rows[field.Row][field.Column] = null;
         Columns[field.Column][field.Row] = null;
 
-        var onDiagonals = field.GetDiagonals();
-        foreach (var diagonalIndex in DiagonalInfos.Where(x => (onDiagonals & x.Diagonal) == x.Diagonal)
-                     .Select(x => x.Index))
-        {
-            Diagonals[diagonalIndex][field.Column] = null;
-        }
+        foreach (var diagonal in GetDiagonals(field))
+            diagonal[field.Column] = null;
     }
+    
+    public IEnumerable<int?[]> GetDiagonals(Field field)
+    {
+        if (field.Row == field.Column)
+            yield return Diagonals[0];
+
+        if (field.Row == Size - 1 - field.Column)
+            yield return Diagonals[1];
+    }
+
 }

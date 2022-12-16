@@ -1,6 +1,6 @@
 namespace JuleSudoku;
 
-internal class Solver
+internal static class Solver
 {
     public static void Solve(Board board)
     {

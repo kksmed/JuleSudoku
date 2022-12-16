@@ -1,6 +1,6 @@
 namespace JuleSudoku;
 
-internal class Validator
+internal static class Validator
 {
     /// <summary>
     /// 65.
@@ -10,18 +10,10 @@ internal class Validator
     public static bool ValidateBoard(Board board)
         => ValidateLocked(board) && ValidateRows(board) && ValidateColumns(board) && ValidatesDiagonals(board);
 
-    public static bool ValidateField(Board board, Field field)
-    {
-        if (!ValidateLine(board.Rows[field.Row]))
-            return false;
-
-        if (!ValidateLine(board.Columns[field.Column]))
-            return false;
-
-        var onDiagonals = field.GetDiagonals();
-        return board.DiagonalInfos.Where(x => (onDiagonals & x.Diagonal) == x.Diagonal)
-            .Select(x => board.Diagonals[x.Index]).All(ValidateLine);
-    }
+    public static bool ValidateField(Board board, Field field) =>
+        ValidateLine(board.Rows[field.Row]) && 
+        ValidateLine(board.Columns[field.Column]) &&
+        board.GetDiagonals(field).All(ValidateLine);
 
     private static bool ValidateRows(Board board) => board.Rows.All(ValidateLine);
 
@@ -35,7 +27,7 @@ internal class Validator
         if (sum > ExpectedSum) return false;
 
         var i = 1;
-        var unassignedMinSum = line.Where(x => !x.HasValue).Select(x => i++).Sum();
+        var unassignedMinSum = line.Where(x => !x.HasValue).Select(_ => i++).Sum();
         if (sum + unassignedMinSum > ExpectedSum) return false;
         
         return true;
