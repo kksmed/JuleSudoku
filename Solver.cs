@@ -2,13 +2,19 @@ namespace JuleSudoku;
 
 internal static class Solver
 {
-    private static readonly List<(int Value, Field field)> Log = new();
+    private static readonly Dictionary<Field, int> Updates = new();
+    // private static readonly List<(int Value, Field field)> Log = new();
 
     public static void Solve(Board board)
     {
         var availableValues = Enumerable.Range(1, 25).Reverse().ToList();
         var predeterminedValues = board.Locked.Select(board.GetField);
         availableValues.RemoveAll(x => predeterminedValues.Contains(x));
+
+        // Initialize Updates
+        for (var row = 0; row < Board.Size; row++)
+        for (var column = 0; column < Board.Size; column++)
+            Updates.Add(new Field(row, column), 0);
 
         Console.WriteLine(TrySolve(board, new Field(0, 0), availableValues) ? "Solved!" : "Failure!");
     }
@@ -22,7 +28,8 @@ internal static class Solver
             if (!Validator.ValidateField(board, field, availableValues.TakeLast(5).Reverse().ToList())) 
                 continue;
 
-            Log.Add((value, field));
+            Updates[field]++;
+            // Log.Add((value, field));
             // Console.WriteLine($"Trying {value} for ({field})");
             
             availableValues.RemoveAt(i);
