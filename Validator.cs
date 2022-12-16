@@ -6,9 +6,9 @@ internal class Validator
     /// 65.
     /// </summary>
     private static readonly int ExpectedSum = Enumerable.Range(1, Board.Size * Board.Size).Sum() / Board.Size;
-    
+
     public static bool ValidateBoard(Board board)
-        => ValidateRows(board) && ValidateColumns(board) && ValidatesDiagonals(board);
+        => ValidateLocked(board) && ValidateRows(board) && ValidateColumns(board) && ValidatesDiagonals(board);
 
     private static bool ValidateRows(Board board) => board.Rows.All(ValidateLine);
 
@@ -27,4 +27,6 @@ internal class Validator
         
         return true;
     }
+
+    private static bool ValidateLocked(Board board) => board.Locked.All(x => board.Rows[x.Row][x.Column].HasValue);
 }

@@ -7,17 +7,7 @@ internal class Board
     public int?[][] Rows { get; }
     public int?[][] Columns { get; }
     public int?[][] Diagonals { get; }
-
-    private readonly Field[] _locked = {
-        new(0, 2),
-        new(0, 4),
-        new(1, 0),
-        new(1, 4),
-        new(2, 1),
-        new(2, 2),
-        new(3, 1),
-        new(4, 4)
-    };
+    public Field[] Locked { get; }
 
     public Board(params (int value, Field field)[] predeterminedFields)
     {
@@ -38,16 +28,28 @@ internal class Board
             new int?[] { null, null, null, null, null },
             new int?[] { 7, 3, null, null, 11 },
         };
+
         Diagonals  = new[]
         {
             new int?[] { null, null, null, null, 11 },
             new int?[] { null, 21, 18, null, 7 },
         };
+
+        Locked = new Field[] {
+            new(0, 2),
+            new(0, 4),
+            new(1, 0),
+            new(1, 4),
+            new(2, 1),
+            new(2, 2),
+            new(3, 1),
+            new(4, 4)
+        };
     }
 
     public void SetField(int value, Field field)
     {
-        if (_locked.Contains(field))
+        if (Locked.Contains(field))
             throw new ArgumentException("Field is predetermined and cannot be set.", nameof(field));
             
         Rows[field.Row][field.Column] = value;
@@ -59,7 +61,7 @@ internal class Board
 
     public void ResetField(Field field)
     {
-        if (_locked.Contains(field))
+        if (Locked.Contains(field))
             throw new ArgumentException("Field is predetermined and cannot be reset.", nameof(field));
 
         Rows[field.Row][field.Column] = null;
