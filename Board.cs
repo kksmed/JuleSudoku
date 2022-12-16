@@ -7,8 +7,9 @@ internal class Board
     public int?[][] Rows { get; }
     public int?[][] Columns { get; }
     public int?[][] Diagonals { get; }
+    public (int Index, Diagonals Diagonal)[] DiagonalInfos { get; }
     public Field[] Locked { get; }
-
+        
     public Board(params (int value, Field field)[] predeterminedFields)
     {
         Rows = new[]
@@ -34,6 +35,8 @@ internal class Board
             new int?[] { null, null, null, null, 11 },
             new int?[] { null, 21, 18, null, 7 },
         };
+        DiagonalInfos = new[]
+            { (0, JuleSudoku.Diagonals.BottomLeftToTopRight), (1, JuleSudoku.Diagonals.TopLeftToBottomRight) };
 
         Locked = new Field[] {
             new(0, 2),
@@ -55,8 +58,21 @@ internal class Board
         Rows[field.Row][field.Column] = value;
         Columns[field.Column][field.Row] = value;
 
-        if (field.TryGetDiagonal(out var diagonal))
-            Diagonals[diagonal.Value][field.Column] = value;
+        var onDiagonals = field.GetDiagonals();
+        foreach (var diagonalIndex in DiagonalInfos.Where(x => (onDiagonals & x.Diagonal) == x.Diagonal)
+                     .Select(x => x.Index))
+        {
+            Diagonals[diagonalIndex][field.Column] = value;
+        }
+    }
+
+    public int GetField(Field field)
+    {
+        var value = Rows[field.Row][field.Column];
+        
+        if (!value.HasValue) throw new ArgumentException("Field has no value.", nameof(field));
+        
+        return value.Value;
     }
 
     public void ResetField(Field field)
@@ -67,7 +83,11 @@ internal class Board
         Rows[field.Row][field.Column] = null;
         Columns[field.Column][field.Row] = null;
 
-        if (field.TryGetDiagonal(out var diagonal))
-            Diagonals[diagonal.Value][field.Column] = null;
+        var onDiagonals = field.GetDiagonals();
+        foreach (var diagonalIndex in DiagonalInfos.Where(x => (onDiagonals & x.Diagonal) == x.Diagonal)
+                     .Select(x => x.Index))
+        {
+            Diagonals[diagonalIndex][field.Column] = null;
+        }
     }
 }

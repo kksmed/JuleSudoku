@@ -10,6 +10,19 @@ internal class Validator
     public static bool ValidateBoard(Board board)
         => ValidateLocked(board) && ValidateRows(board) && ValidateColumns(board) && ValidatesDiagonals(board);
 
+    public static bool ValidateField(Board board, Field field)
+    {
+        if (!ValidateLine(board.Rows[field.Row]))
+            return false;
+
+        if (!ValidateLine(board.Columns[field.Column]))
+            return false;
+
+        var onDiagonals = field.GetDiagonals();
+        return board.DiagonalInfos.Where(x => (onDiagonals & x.Diagonal) == x.Diagonal)
+            .Select(x => board.Diagonals[x.Index]).All(ValidateLine);
+    }
+
     private static bool ValidateRows(Board board) => board.Rows.All(ValidateLine);
 
     private static bool ValidateColumns(Board board) => board.Columns.All(ValidateLine);
