@@ -31,7 +31,7 @@ internal class Board
 
         Diagonals  = new[]
         {
-            new int?[] { null, null, null, null, 11 },
+            new int?[] { null, null, 18, null, 11 },
             new int?[] { null, 21, 18, null, 7 },
         };
 
