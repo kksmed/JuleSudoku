@@ -1,5 +1,3 @@
-using System.Collections.Immutable;
-
 namespace JuleSudoku;
 
 internal static class Solver
@@ -19,13 +17,13 @@ internal static class Solver
         for (var column = 0; column < Board.Size; column++)
             Updates.Add(new Field(row, column), 0);
 
-        return TrySolve(board, new Field(0, 0), availableValues.ToImmutableArray());
+        return TrySolve(board, new Field(0, 0), availableValues);
     }
 
-    private static bool TrySolve(Board board, Field field, ImmutableArray<int> availableValues)
+    private static bool TrySolve(Board board, Field field, List<int> availableValues)
     {
         // Run backwards as we want to test biggest numbers first.
-        for (var i = availableValues.Length - 1; i >= 0; i--)
+        for (var i = availableValues.Count - 1; i >= 0; i--)
         {
             var value = availableValues[i];
             board.SetField(value, field);
@@ -35,10 +33,13 @@ internal static class Solver
             Updates[field]++;
             
             var nextField = FindNextField(board, field);
-            var remainingValues = availableValues.RemoveAt(i);
-            if (!nextField.HasValue || TrySolve(board, nextField.Value, remainingValues))
+            availableValues.RemoveAt(i);
+            if (!nextField.HasValue || TrySolve(board, nextField.Value, availableValues))
                 return true;
+            
+            availableValues.Insert(i, value);
         }
+        
         board.ResetField(field);
         DeadEnds++;
         return false;
