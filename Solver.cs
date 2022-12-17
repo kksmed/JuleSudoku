@@ -11,7 +11,7 @@ internal static class Solver
     public static void Solve(Board board)
     {
         var predeterminedValues = board.Locked.Select(board.GetField);
-        var availableValues = Enumerable.Range(1, 25).Reverse().ToList();
+        var availableValues = Enumerable.Range(1, 25).ToList();
         availableValues.RemoveAll(x => predeterminedValues.Contains(x));
 
         // Initialize Updates
@@ -24,11 +24,12 @@ internal static class Solver
 
     private static bool TrySolve(Board board, Field field, ImmutableArray<int> availableValues)
     {
-        for (var i = 0; i < availableValues.Length; i++)
+        // Run backwards as we want to test biggest numbers first.
+        for (var i = availableValues.Length - 1; i >= 0; i--)
         {
             var value = availableValues[i];
             board.SetField(value, field);
-            if (!Validator.ValidateField(board, field, availableValues.TakeLast(5).Reverse().ToList())) 
+            if (!Validator.ValidateField(board, field, availableValues.Take(5).ToList())) 
                 continue;
 
             Updates[field]++;
