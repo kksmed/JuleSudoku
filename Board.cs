@@ -78,28 +78,6 @@ internal class Board
 
     public Field this[Point point] => Rows[point.Row][point.Column];
 
-    public void SetField(int value, Point point)
-    {
-        var field = this[point];
-        field.Set(value);
-    }
-    
-    public int GetFieldValue(Point point)
-    {
-        var field = this[point];
-        var value = field.Value;
-        if (!value.HasValue)
-            throw new ArgumentException($"Field ({field.Point}) has no value.", nameof(point));
-        
-        return value.Value;
-    }
-
-    public void ResetField(Point point)
-    {
-        var field = this[point];
-        field.Reset();
-    }
-    
     public IEnumerable<Field[]> GetDiagonals(Point point)
     {
         if (point.Row == point.Column)
