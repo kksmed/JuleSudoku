@@ -36,6 +36,6 @@ Solver.Solve(board);
 stopWatch.Stop();
 
 Console.WriteLine($"Solved in: {stopWatch.Elapsed}");
-
+Console.WriteLine($"Dead ends: {Solver.DeadEnds}");
 Console.Write(board.ToString());
 Console.ReadKey();

@@ -3,7 +3,8 @@ namespace JuleSudoku;
 internal static class Solver
 {
     private static readonly Dictionary<Field, int> Updates = new();
-    // private static readonly List<(int Value, Field field)> Log = new();
+
+    public static ulong DeadEnds { get; private set; }
 
     public static void Solve(Board board)
     {
@@ -29,8 +30,6 @@ internal static class Solver
                 continue;
 
             Updates[field]++;
-            // Log.Add((value, field));
-            // Console.WriteLine($"Trying {value} for ({field})");
             
             availableValues.RemoveAt(i);
             var nextField = FindNextField(board, field);
@@ -40,6 +39,7 @@ internal static class Solver
             availableValues.Insert(i, value);
         }
         board.ResetField(field);
+        DeadEnds++;
         return false;
     }
 
