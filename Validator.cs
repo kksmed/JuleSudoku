@@ -38,7 +38,7 @@ internal static class Validator
         var sum = line.Select(x => x.Value).Sum();
         if (sum > ExpectedSum) return false;
 
-        var unassignedMinSum = lowestAvailableValues.Take(line.Count(x => !x.Value.HasValue)).Sum();
+        var unassignedMinSum = lowestAvailableValues.Take(line.Count(x => !x.HasValue)).Sum();
         if (sum + unassignedMinSum > ExpectedSum) return false;
         
         return true;

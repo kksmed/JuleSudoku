@@ -11,6 +11,9 @@ internal class Field
 
     public Point Point { get; }
     public int? Value { get; private set; }
+    
+    public bool HasValue => Value.HasValue;
+
     public bool IsLocked { get; }
 
     public void Set(int newValue)

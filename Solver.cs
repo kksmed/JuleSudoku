@@ -21,7 +21,7 @@ internal static class Solver
             if (!Validator.ValidateField(board, field.Point, availableValues.Take(5).ToList())) 
                 continue;
 
-            var nextField = FindNextField(board, field.Point);
+            var nextField = FindNextField(board);
             availableValues.RemoveAt(i);
             if (nextField == null || TrySolve(board, nextField, availableValues))
                 return true;
@@ -33,28 +33,17 @@ internal static class Solver
         return false;
     }
 
-    private static Field? FindNextField(Board board, Point point)
+    private static Stack<Field> _nextQueue = new (0);
+    
+    private static Field? FindNextField(Board board)
     {
-        var nextRow = point.Row;
-        var nextColumn = point.Column;
-        while (true)
-        {
-            nextColumn++;
-            if (nextColumn >= Board.Size)
-            {
-                nextColumn = 0;
-                nextRow++;
-                
-                if (nextRow >= Board.Size)
-                    return null;
-            }
+        if (_nextQueue.Any())
+            return _nextQueue.Pop();
 
-            var nextPoint = new Point(nextRow, nextColumn);
-            var nextField = board[nextPoint];
-            if (nextField.IsLocked)
-                continue;
+        var lineWithManyNumbers = board.Rows.Concat(board.Columns).Concat(board.Diagonals)
+            .Where(x => x.Any(y => !y.HasValue)).MinBy(x => x.Count(y => !y.HasValue));
 
-            return nextField;
-        }
+        _nextQueue = new Stack<Field>(lineWithManyNumbers?.Where(x => !x.HasValue) ?? Enumerable.Empty<Field>());
+        return _nextQueue.Any() ? _nextQueue.Pop() : null;
     }
 }
