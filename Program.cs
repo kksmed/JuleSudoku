@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Diagnostics;
 using JuleSudoku;
 
 var board = new Board(
@@ -13,13 +14,28 @@ var board = new Board(
     (11, new Field(4, 4)));
 
 Console.Write(board.ToString());
+Console.WriteLine($"{Environment.NewLine}<Press any key to continue>");
+
+Console.WriteLine(" ");
 Console.ReadKey();
+
+Console.WriteLine(" ");
 
 var initialValidation = Validator.ValidateBoard(board);
 
 if (!initialValidation)
     throw new InvalidOperationException("Invalid initial board.");
 
+Console.WriteLine($"Start solving ({DateTime.Now})...");
+Console.WriteLine(" ");
+
+var stopWatch = Stopwatch.StartNew();
+
 Solver.Solve(board);
 
+stopWatch.Stop();
+
+Console.WriteLine($"Solved in: {stopWatch.Elapsed}");
+
+Console.Write(board.ToString());
 Console.ReadKey();
