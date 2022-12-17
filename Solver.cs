@@ -1,14 +1,16 @@
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 
 namespace JuleSudoku;
 
 internal static class Solver
 {
-    private static readonly Dictionary<Field, int> Updates = new();
+    private static readonly ConcurrentDictionary<Field, int> Updates = new();
+    
+    private static ulong _deadEnds;
+    public static ulong DeadEnds => _deadEnds;
 
-    public static ulong DeadEnds { get; private set; }
-
-    public static bool Solve(Board board)
+    public static async Task<bool> Solve(Board board)
     {
         var predeterminedValues = board.Locked.Select(board.GetField);
         var availableValues = Enumerable.Range(1, 25).ToList();
@@ -17,12 +19,13 @@ internal static class Solver
         // Initialize Updates
         for (var row = 0; row < Board.Size; row++)
         for (var column = 0; column < Board.Size; column++)
-            Updates.Add(new Field(row, column), 0);
+            Updates.TryAdd(new Field(row, column), 0);
 
-        return TrySolve(board, new Field(0, 0), availableValues.ToImmutableArray());
+        var result = TrySolve(board, new Field(0, 0), availableValues.ToImmutableArray());
+        return await result;
     }
 
-    private static bool TrySolve(Board board, Field field, ImmutableArray<int> availableValues)
+    private static async Task<bool> TrySolve(Board board, Field field, ImmutableArray<int> availableValues)
     {
         // Run backwards as we want to test biggest numbers first.
         for (var i = availableValues.Length - 1; i >= 0; i--)
@@ -32,15 +35,15 @@ internal static class Solver
             if (!Validator.ValidateField(board, field, availableValues.Take(5).ToList())) 
                 continue;
 
-            Updates[field]++;
+            Updates.AddOrUpdate(field, 0, (_, x) => x + 1); // Always updates - '0' will never be added.
             
             var nextField = FindNextField(board, field);
             var remainingValues = availableValues.RemoveAt(i);
-            if (!nextField.HasValue || TrySolve(board, nextField.Value, remainingValues))
+            if (!nextField.HasValue || await TrySolve(board, nextField.Value, remainingValues))
                 return true;
         }
         board.ResetField(field);
-        DeadEnds++;
+        Interlocked.Increment(ref _deadEnds);
         return false;
     }
 

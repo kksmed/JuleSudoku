@@ -31,7 +31,7 @@ Console.WriteLine(" ");
 
 var stopWatch = Stopwatch.StartNew();
 
-var result = Solver.Solve(board);
+var result = await Solver.Solve(board);
 
 stopWatch.Stop();
 
