@@ -8,7 +8,7 @@ internal static class Solver
 
     public static ulong DeadEnds { get; private set; }
 
-    public static void Solve(Board board)
+    public static bool Solve(Board board)
     {
         var predeterminedValues = board.Locked.Select(board.GetField);
         var availableValues = Enumerable.Range(1, 25).ToList();
@@ -19,7 +19,7 @@ internal static class Solver
         for (var column = 0; column < Board.Size; column++)
             Updates.Add(new Field(row, column), 0);
 
-        Console.WriteLine(TrySolve(board, new Field(0, 0), availableValues.ToImmutableArray()) ? "Solved!" : "Failure!");
+        return TrySolve(board, new Field(0, 0), availableValues.ToImmutableArray());
     }
 
     private static bool TrySolve(Board board, Field field, ImmutableArray<int> availableValues)
