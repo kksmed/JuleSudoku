@@ -6,11 +6,23 @@ namespace JuleSudoku;
 internal static class Solver
 {
     private static readonly ConcurrentDictionary<Field, int> Updates = new();
-    
-    private static ulong _deadEnds;
-    public static ulong DeadEnds => _deadEnds;
 
-    public static async Task<Board?> Solve(Board board)
+    private static Board? _solution;
+    
+    private static (ParallelOptions, CancellationTokenSource) SetupParallelism()
+    {
+        var cts = new CancellationTokenSource();
+        var po = new ParallelOptions
+        {
+            CancellationToken = cts.Token,
+            MaxDegreeOfParallelism = Environment.ProcessorCount
+        };
+        Console.WriteLine($"Running in parallel: {Environment.ProcessorCount}");
+
+        return (po, cts);
+    }
+    
+    public static Board? Solve(Board board)
     {
         var predeterminedValues = board.Locked.Select(board.GetField);
         var availableValues = Enumerable.Range(1, 25).ToList();
@@ -21,33 +33,52 @@ internal static class Solver
         for (var column = 0; column < Board.Size; column++)
             Updates.TryAdd(new Field(row, column), 0);
 
-        var result = TrySolve(board, new Field(0, 0), availableValues.ToImmutableArray());
-        return await result;
+        using var tokenSource = new CancellationTokenSource();
+        var po = new ParallelOptions
+        {
+            CancellationToken = tokenSource.Token,
+            MaxDegreeOfParallelism = Environment.ProcessorCount
+        };
+        Console.WriteLine($"Running in parallel: {Environment.ProcessorCount}");
+
+        try
+        {
+            TrySolve(board, new Field(0, 0), availableValues.ToImmutableArray(), tokenSource, po);
+        }
+        catch (OperationCanceledException e)
+        {
+            Console.WriteLine(e.Message);
+        }
+
+        return _solution;
     }
 
-    private static async Task<Board?> TrySolve(Board board, Field field, ImmutableArray<int> availableValues)
+    private static void TrySolve(Board board, Field field, ImmutableArray<int> availableValues,
+        CancellationTokenSource tokenSource, ParallelOptions parallelOptions)
     {
-        // Run backwards as we want to test biggest numbers first.
-        for (var i = availableValues.Length - 1; i >= 0; i--)
+        var subTasks = new List<Task<Board?>>(availableValues.Length);
+
+        Parallel.For(0, availableValues.Length, parallelOptions, i =>
         {
-            var value = availableValues[i];
+            // Run backwards as we want to test biggest numbers first.
+            var value = availableValues[availableValues.Length - 1 - i];
             var newBoard = board.SetField(value, field);
-            if (!Validator.ValidateField(newBoard, field, availableValues.Take(5).ToList())) 
-                continue;
+            if (!Validator.ValidateField(newBoard, field, availableValues.Take(5).ToList()))
+                return;
 
             Updates.AddOrUpdate(field, 0, (_, x) => x + 1); // Always updates - '0' will never be added.
-            
+
             var nextField = FindNextField(newBoard, field);
             var remainingValues = availableValues.RemoveAt(i);
             if (!nextField.HasValue)
-                return newBoard;
+            {
+                _solution = newBoard;
+                tokenSource.Cancel();
+                return;
+            }
 
-            var solvedBoard = await TrySolve(newBoard, nextField.Value, remainingValues);
-            if (solvedBoard != null)
-                return solvedBoard;
-        }
-        Interlocked.Increment(ref _deadEnds);
-        return null;
+            TrySolve(newBoard, nextField.Value, remainingValues, tokenSource, parallelOptions);
+        });
     }
 
     private static Field? FindNextField(Board board, Field field)

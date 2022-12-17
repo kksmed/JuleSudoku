@@ -31,14 +31,13 @@ Console.WriteLine(" ");
 
 var stopWatch = Stopwatch.StartNew();
 
-var result = await Solver.Solve(initialBoard);
+var result = Solver.Solve(initialBoard);
 
 stopWatch.Stop();
 
 Console.WriteLine(result == null ? "Failure!" : "Solved!");
 
 Console.WriteLine($"Time: {stopWatch.Elapsed}");
-Console.WriteLine($"Dead ends: {Solver.DeadEnds}");
 
 Console.Write(result?.ToString());
 
