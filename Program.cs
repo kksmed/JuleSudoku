@@ -3,7 +3,7 @@
 using System.Diagnostics;
 using JuleSudoku;
 
-var board = Board.Create(
+var initialBoard = Board.Create(
     (1, new Field(0, 2)),
     (7, new Field(0, 4)),
     (16, new Field(1, 0)),
@@ -13,7 +13,7 @@ var board = Board.Create(
     (21, new Field(3, 1)),
     (11, new Field(4, 4)));
 
-Console.Write(board.ToString());
+Console.Write(initialBoard.ToString());
 Console.WriteLine($"{Environment.NewLine}<Press any key to continue>");
 
 Console.WriteLine(" ");
@@ -21,7 +21,7 @@ Console.ReadKey();
 
 Console.WriteLine(" ");
 
-var initialValidation = Validator.ValidateBoard(board);
+var initialValidation = Validator.ValidateBoard(initialBoard);
 
 if (!initialValidation)
     throw new InvalidOperationException("Invalid initial board.");
@@ -31,13 +31,15 @@ Console.WriteLine(" ");
 
 var stopWatch = Stopwatch.StartNew();
 
-var result = await Solver.Solve(board);
+var result = await Solver.Solve(initialBoard);
 
 stopWatch.Stop();
 
-Console.WriteLine(result ? "Solved!" : "Failure!");
+Console.WriteLine(result == null ? "Failure!" : "Solved!");
 
 Console.WriteLine($"Time: {stopWatch.Elapsed}");
 Console.WriteLine($"Dead ends: {Solver.DeadEnds}");
-Console.Write(board.ToString());
+
+Console.Write(result?.ToString());
+
 Console.ReadKey();

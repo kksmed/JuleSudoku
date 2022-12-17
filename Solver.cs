@@ -10,7 +10,7 @@ internal static class Solver
     private static ulong _deadEnds;
     public static ulong DeadEnds => _deadEnds;
 
-    public static async Task<bool> Solve(Board board)
+    public static async Task<Board?> Solve(Board board)
     {
         var predeterminedValues = board.Locked.Select(board.GetField);
         var availableValues = Enumerable.Range(1, 25).ToList();
@@ -25,7 +25,7 @@ internal static class Solver
         return await result;
     }
 
-    private static async Task<bool> TrySolve(Board board, Field field, ImmutableArray<int> availableValues)
+    private static async Task<Board?> TrySolve(Board board, Field field, ImmutableArray<int> availableValues)
     {
         // Run backwards as we want to test biggest numbers first.
         for (var i = availableValues.Length - 1; i >= 0; i--)
@@ -39,11 +39,15 @@ internal static class Solver
             
             var nextField = FindNextField(newBoard, field);
             var remainingValues = availableValues.RemoveAt(i);
-            if (!nextField.HasValue || await TrySolve(newBoard, nextField.Value, remainingValues))
-                return true;
+            if (!nextField.HasValue)
+                return newBoard;
+
+            var solvedBoard = await TrySolve(newBoard, nextField.Value, remainingValues);
+            if (solvedBoard != null)
+                return solvedBoard;
         }
         Interlocked.Increment(ref _deadEnds);
-        return false;
+        return null;
     }
 
     private static Field? FindNextField(Board board, Field field)
