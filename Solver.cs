@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace JuleSudoku;
 
 internal static class Solver
@@ -8,8 +10,8 @@ internal static class Solver
 
     public static void Solve(Board board)
     {
-        var availableValues = Enumerable.Range(1, 25).Reverse().ToList();
         var predeterminedValues = board.Locked.Select(board.GetField);
+        var availableValues = Enumerable.Range(1, 25).Reverse().ToList();
         availableValues.RemoveAll(x => predeterminedValues.Contains(x));
 
         // Initialize Updates
@@ -17,12 +19,12 @@ internal static class Solver
         for (var column = 0; column < Board.Size; column++)
             Updates.Add(new Field(row, column), 0);
 
-        Console.WriteLine(TrySolve(board, new Field(0, 0), availableValues) ? "Solved!" : "Failure!");
+        Console.WriteLine(TrySolve(board, new Field(0, 0), availableValues.ToImmutableArray()) ? "Solved!" : "Failure!");
     }
 
-    private static bool TrySolve(Board board, Field field, List<int> availableValues)
+    private static bool TrySolve(Board board, Field field, ImmutableArray<int> availableValues)
     {
-        for (var i = 0; i < availableValues.Count; i++)
+        for (var i = 0; i < availableValues.Length; i++)
         {
             var value = availableValues[i];
             board.SetField(value, field);
@@ -31,12 +33,10 @@ internal static class Solver
 
             Updates[field]++;
             
-            availableValues.RemoveAt(i);
             var nextField = FindNextField(board, field);
-            if (!nextField.HasValue || TrySolve(board, nextField.Value, availableValues))
+            var remainingValues = availableValues.RemoveAt(i);
+            if (!nextField.HasValue || TrySolve(board, nextField.Value, remainingValues))
                 return true;
-                
-            availableValues.Insert(i, value);
         }
         board.ResetField(field);
         DeadEnds++;
