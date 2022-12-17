@@ -4,14 +4,14 @@ using System.Diagnostics;
 using JuleSudoku;
 
 var board = new Board(
-    (1, new Field(0, 2)),
-    (7, new Field(0, 4)),
-    (16, new Field(1, 0)),
-    (3, new Field(1, 4)),
-    (5, new Field(2, 1)),
-    (18, new Field(2, 2)),
-    (21, new Field(3, 1)),
-    (11, new Field(4, 4)));
+    new Field(new Point(0, 2), 1),
+    new Field(new Point(0, 4), 7),
+    new Field(new Point(1, 0), 16),
+    new Field(new Point(1, 4), 3),
+    new Field(new Point(2, 1), 5),
+    new Field(new Point(2, 2), 18),
+    new Field(new Point(3, 1), 21),
+    new Field(new Point(4, 4), 11));
 
 Console.Write(board.ToString());
 Console.WriteLine($"{Environment.NewLine}<Press any key to continue>");
@@ -38,6 +38,5 @@ stopWatch.Stop();
 Console.WriteLine(result ? "Solved!" : "Failure!");
 
 Console.WriteLine($"Time: {stopWatch.Elapsed}");
-Console.WriteLine($"Dead ends: {Solver.DeadEnds}");
 Console.Write(board.ToString());
 Console.ReadKey();

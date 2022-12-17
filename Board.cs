@@ -6,67 +6,106 @@ internal class Board
 {
     public const int Size = 5;
     
-    public int?[][] Rows { get; }
-    public int?[][] Columns { get; }
-    public int?[][] Diagonals { get; }
+    public Field[][] Rows { get; }
+    public Field[][] Columns { get; }
+    public Field[][] Diagonals { get; }
     public Field[] Locked { get; }
-        
-    public Board(params (int value, Field field)[] predeterminedFields)
+    
+    public Board(params Field[] predeterminedFields)
     {
-        Rows = Enumerable.Range(0, Size).Select(_ => Enumerable.Repeat<int?>(null, Size).ToArray()).ToArray();
-        Columns = Enumerable.Range(0, Size).Select(_ => Enumerable.Repeat<int?>(null, Size).ToArray()).ToArray();
-        Diagonals = Enumerable.Range(0, 2).Select(_ => Enumerable.Repeat<int?>(null, Size).ToArray()).ToArray();
-        
-        foreach (var (value, field) in predeterminedFields) 
-            InternalSetField(value, field);
-        
-        Locked = predeterminedFields.Select(x => x.field).ToArray();
+        Rows = InitializeRows(predeterminedFields);
+        Columns = InitializeColumns();
+        Diagonals = InitializeDiagonals();
+        Locked = predeterminedFields;
     }
 
-    public void SetField(int value, Field field)
+    private static Field[][] InitializeRows(Field[] predeterminedFields)
     {
-        if (Locked.Contains(field))
-            throw new ArgumentException("Field is predetermined and cannot be set.", nameof(field));
+        var listOfRows = new List<Field[]>(Size);
+        for (var row = 0; row < Size; row++)
+        {
+            var rowList = new List<Field>(Size);
+            for (var column = 0; column < Size; column++)
+            {
+                var point = new Point(row, column);
+                var predetermined = predeterminedFields.FirstOrDefault(x => x.Point == point);
+                var field = predetermined ?? new Field(point);
+                rowList.Add(field);
+            }
 
-        InternalSetField(value, field);
+            listOfRows.Add(rowList.ToArray());
+        }
+
+        return listOfRows.ToArray();
+    }
+    
+    private Field[][] InitializeColumns()
+    {
+        var listOfColumns = new List<Field[]>(Size);
+        for (var column = 0; column < Size; column++)
+        {
+            var columnList = new List<Field>(Size);
+            for (var row = 0; row < Size; row++)
+            {
+                var field = Rows[row][column];
+                columnList.Add(field);
+            }
+
+            listOfColumns.Add(columnList.ToArray());
+        }
+
+        return listOfColumns.ToArray();
     }
 
-    private void InternalSetField(int value, Field field)
+    private Field[][] InitializeDiagonals()
     {
-        Rows[field.Row][field.Column] = value;
-        Columns[field.Column][field.Row] = value;
+        var listOfDiagonals = new List<Field[]>(2);
+        for (var d = 0; d < 2; d++)
+        {
+            var diagonalList = new List<Field>(Size);
+            for (var i = 0; i < Size; i++)
+            {
+                var row = d == 0 ? i : Size - 1 - i;
+                var field = Rows[row][i];
+                diagonalList.Add(field);
+            }
 
-        foreach (var diagonal in GetDiagonals(field))
-            diagonal[field.Column] = value;
+            listOfDiagonals.Add(diagonalList.ToArray());
+        }
+
+        return listOfDiagonals.ToArray();
     }
 
-    public int GetField(Field field)
+    public Field this[Point point] => Rows[point.Row][point.Column];
+
+    public void SetField(int value, Point point)
     {
-        var value = Rows[field.Row][field.Column];
-        
-        if (!value.HasValue) throw new ArgumentException("Field has no value.", nameof(field));
+        var field = this[point];
+        field.Set(value);
+    }
+    
+    public int GetFieldValue(Point point)
+    {
+        var field = this[point];
+        var value = field.Value;
+        if (!value.HasValue)
+            throw new ArgumentException($"Field ({field.Point}) has no value.", nameof(point));
         
         return value.Value;
     }
 
-    public void ResetField(Field field)
+    public void ResetField(Point point)
     {
-        if (Locked.Contains(field))
-            throw new ArgumentException("Field is predetermined and cannot be reset.", nameof(field));
-
-        Rows[field.Row][field.Column] = null;
-        Columns[field.Column][field.Row] = null;
-
-        foreach (var diagonal in GetDiagonals(field))
-            diagonal[field.Column] = null;
+        var field = this[point];
+        field.Reset();
     }
     
-    public IEnumerable<int?[]> GetDiagonals(Field field)
+    public IEnumerable<Field[]> GetDiagonals(Point point)
     {
-        if (field.Row == field.Column)
+        if (point.Row == point.Column)
             yield return Diagonals[0];
 
-        if (field.Row == Size - 1 - field.Column)
+        if (point.Row == Size - 1 - point.Column)
             yield return Diagonals[1];
     }
 
@@ -74,6 +113,6 @@ internal class Board
     {
         return string.Join(Environment.NewLine,
             Rows.Select(x =>
-                string.Join(" | ", x.Select(y => (y?.ToString(CultureInfo.InvariantCulture) ?? "").PadLeft(2)))));
+                string.Join(" | ", x.Select(y => (y.Value?.ToString(CultureInfo.InvariantCulture) ?? "").PadLeft(2)))));
     }
 }
