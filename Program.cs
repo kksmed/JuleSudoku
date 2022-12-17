@@ -39,4 +39,3 @@ Console.WriteLine(result ? "Solved!" : "Failure!");
 
 Console.WriteLine($"Time: {stopWatch.Elapsed}");
 Console.Write(board.ToString());
-Console.ReadKey();
