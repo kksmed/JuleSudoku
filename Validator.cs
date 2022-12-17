@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace JuleSudoku;
 
 internal static class Validator
@@ -33,7 +35,7 @@ internal static class Validator
     private static bool ValidateDiagonals(Board board) =>
         board.Diagonals.All(x => ValidateLine(x, Enumerable.Range(1, 5)));
     
-    private static bool ValidateLine(int?[] line, IEnumerable<int> lowestAvailableValues)
+    private static bool ValidateLine(ImmutableArray<int?> line, IEnumerable<int> lowestAvailableValues)
     {
         var sum = line.Sum();
         if (sum > ExpectedSum) return false;

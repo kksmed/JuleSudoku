@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Globalization;
 
 namespace JuleSudoku;
@@ -6,38 +7,55 @@ internal class Board
 {
     public const int Size = 5;
     
-    public int?[][] Rows { get; }
-    public int?[][] Columns { get; }
-    public int?[][] Diagonals { get; }
-    public Field[] Locked { get; }
-        
-    public Board(params (int value, Field field)[] predeterminedFields)
+    public ImmutableArray<ImmutableArray<int?>> Rows { get; }
+    public ImmutableArray<ImmutableArray<int?>> Columns { get; }
+    public ImmutableArray<ImmutableArray<int?>> Diagonals { get; }
+    public ImmutableArray<Field> Locked { get; }
+
+    private Board(ImmutableArray<ImmutableArray<int?>> rows, ImmutableArray<ImmutableArray<int?>> columns,
+        ImmutableArray<ImmutableArray<int?>> diagonals, ImmutableArray<Field> locked)
     {
-        Rows = Enumerable.Range(0, Size).Select(_ => Enumerable.Repeat<int?>(null, Size).ToArray()).ToArray();
-        Columns = Enumerable.Range(0, Size).Select(_ => Enumerable.Repeat<int?>(null, Size).ToArray()).ToArray();
-        Diagonals = Enumerable.Range(0, 2).Select(_ => Enumerable.Repeat<int?>(null, Size).ToArray()).ToArray();
-        
-        foreach (var (value, field) in predeterminedFields) 
-            InternalSetField(value, field);
-        
-        Locked = predeterminedFields.Select(x => x.field).ToArray();
+        Rows = rows;
+        Columns = columns;
+        Diagonals = diagonals;
+        Locked = locked;
     }
 
-    public void SetField(int value, Field field)
+    public static Board Create(params (int value, Field field)[] predeterminedFields)
+    {
+        var rows = Enumerable.Range(0, Size).Select(_ => Enumerable.Repeat<int?>(null, Size).ToImmutableArray())
+            .ToImmutableArray();
+        var columns = Enumerable.Range(0, Size).Select(_ => Enumerable.Repeat<int?>(null, Size).ToImmutableArray())
+            .ToImmutableArray();
+        var diagonals = Enumerable.Range(0, 2).Select(_ => Enumerable.Repeat<int?>(null, Size).ToImmutableArray())
+            .ToImmutableArray();
+        
+        var locked = predeterminedFields.Select(x => x.field).ToImmutableArray();
+        
+        var board = new Board(rows, columns, diagonals, locked);
+        
+        foreach (var (value, field) in predeterminedFields) 
+            board = board.InternalSetField(value, field);
+        
+        return board;
+    }
+
+    public Board SetField(int value, Field field)
     {
         if (Locked.Contains(field))
             throw new ArgumentException("Field is predetermined and cannot be set.", nameof(field));
 
-        InternalSetField(value, field);
+        return InternalSetField(value, field);
     }
 
-    private void InternalSetField(int value, Field field)
+    private Board InternalSetField(int value, Field field)
     {
-        Rows[field.Row][field.Column] = value;
-        Columns[field.Column][field.Row] = value;
+        var rows = Rows.SetItem(field.Row, Rows[field.Row].SetItem(field.Column, value));
+        var columns = Columns.SetItem(field.Column, Columns[field.Column].SetItem(field.Row, value));
 
-        foreach (var diagonal in GetDiagonals(field))
-            diagonal[field.Column] = value;
+        var diagonals = GetDiagonalIndexes(field).Aggregate(Diagonals,
+            (current, diagonal) => current.SetItem(diagonal, Diagonals[diagonal].SetItem(field.Column, value)));
+        return new Board(rows, columns, diagonals, Locked);
     }
 
     public int GetField(Field field)
@@ -48,26 +66,20 @@ internal class Board
         
         return value.Value;
     }
-
-    public void ResetField(Field field)
-    {
-        if (Locked.Contains(field))
-            throw new ArgumentException("Field is predetermined and cannot be reset.", nameof(field));
-
-        Rows[field.Row][field.Column] = null;
-        Columns[field.Column][field.Row] = null;
-
-        foreach (var diagonal in GetDiagonals(field))
-            diagonal[field.Column] = null;
-    }
     
-    public IEnumerable<int?[]> GetDiagonals(Field field)
+    private static IEnumerable<int> GetDiagonalIndexes(Field field)
     {
         if (field.Row == field.Column)
-            yield return Diagonals[0];
+            yield return 0;
 
         if (field.Row == Size - 1 - field.Column)
-            yield return Diagonals[1];
+            yield return 1;
+    }
+
+    public IEnumerable<ImmutableArray<int?>> GetDiagonals(Field field)
+    {
+        var indexes = GetDiagonalIndexes(field);
+        return Diagonals.Where((_, i) => indexes.Contains(i));
     }
 
     public override string ToString()

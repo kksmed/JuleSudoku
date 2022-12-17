@@ -3,7 +3,7 @@
 using System.Diagnostics;
 using JuleSudoku;
 
-var board = new Board(
+var board = Board.Create(
     (1, new Field(0, 2)),
     (7, new Field(0, 4)),
     (16, new Field(1, 0)),

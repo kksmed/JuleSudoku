@@ -31,18 +31,17 @@ internal static class Solver
         for (var i = availableValues.Length - 1; i >= 0; i--)
         {
             var value = availableValues[i];
-            board.SetField(value, field);
-            if (!Validator.ValidateField(board, field, availableValues.Take(5).ToList())) 
+            var newBoard = board.SetField(value, field);
+            if (!Validator.ValidateField(newBoard, field, availableValues.Take(5).ToList())) 
                 continue;
 
             Updates.AddOrUpdate(field, 0, (_, x) => x + 1); // Always updates - '0' will never be added.
             
-            var nextField = FindNextField(board, field);
+            var nextField = FindNextField(newBoard, field);
             var remainingValues = availableValues.RemoveAt(i);
-            if (!nextField.HasValue || await TrySolve(board, nextField.Value, remainingValues))
+            if (!nextField.HasValue || await TrySolve(newBoard, nextField.Value, remainingValues))
                 return true;
         }
-        board.ResetField(field);
         Interlocked.Increment(ref _deadEnds);
         return false;
     }
