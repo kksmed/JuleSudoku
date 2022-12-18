@@ -13,7 +13,7 @@ var board = new Board(
     new Field(new Point(3, 1), 21),
     new Field(new Point(4, 4), 11));
 
-Console.Write(board.ToString());
+Console.WriteLine(board.ToString());
 Console.WriteLine($"{Environment.NewLine}<Press any key to continue>");
 
 Console.WriteLine(" ");
@@ -38,4 +38,4 @@ stopWatch.Stop();
 Console.WriteLine(result ? "Solved!" : "Failure!");
 
 Console.WriteLine($"Time: {stopWatch.Elapsed}");
-Console.Write(board.ToString());
+Console.WriteLine($"Updates in total: {Solver.Updates}");

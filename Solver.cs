@@ -2,8 +2,11 @@ namespace JuleSudoku;
 
 internal static class Solver
 {
+    public static int Updates { get; private set; }
+    
     public static bool Solve(Board board)
     {
+        Updates = 0;
         var predeterminedValues = board.Locked.Select(x => x.Value!.Value);
         var availableValues = Enumerable.Range(1, 25).Where(x => !predeterminedValues.Contains(x)).ToList();
 
@@ -13,7 +16,14 @@ internal static class Solver
     private static bool TrySolveNextLine(Board board, List<int> availableValues, int linesSolved = 0)
     {
         var line = FindNextLine(board, linesSolved);
-        return line == null || TrySolveLine(board, line, availableValues, linesSolved);
+        if (line == null)
+        {
+            Console.WriteLine($"Solution after updates: {Updates}");
+            Console.WriteLine(board.ToString());
+
+            return false; // We want to find all the solutions
+        }
+        return TrySolveLine(board, line, availableValues, linesSolved);
     }
 
     private static bool TrySolveLine(Board board, Field[] line, List<int> availableValues, int linesSolved)
@@ -52,6 +62,8 @@ internal static class Solver
         {
             var value = lineAvailableValues[i];
             field.Set(value);
+            Updates++;
+            
             if (!Validator.ValidateField(board, field.Point, allAvailableValues.Take(5).ToList())) 
                 continue;
 
