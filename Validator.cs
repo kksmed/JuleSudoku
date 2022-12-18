@@ -38,10 +38,12 @@ internal static class Validator
         var sum = line.Select(x => x.Value).Sum();
         if (sum > ExpectedSum) return false;
 
-        var unassignedMinSum = lowestAvailableValues.Take(line.Count(x => !x.HasValue)).Sum();
-        if (sum + unassignedMinSum > ExpectedSum) return false;
+        var unsetFields = line.Count(x => !x.HasValue);
+        if (unsetFields == 0)
+            return sum == ExpectedSum;
         
-        return true;
+        var unassignedMinSum = lowestAvailableValues.Take(unsetFields).Sum();
+        return sum + unassignedMinSum <= ExpectedSum;
     }
 
     private static bool ValidateLocked(Board board) => board.Locked.All(x => x.IsLocked);
