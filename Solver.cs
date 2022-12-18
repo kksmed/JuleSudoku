@@ -24,9 +24,9 @@ internal static class Solver
         {
             TrySolve(board, new Field(0, 0), availableValues.ToImmutableArray(), tokenSource, po);
         }
-        catch (OperationCanceledException e)
+        catch (OperationCanceledException)
         {
-            Console.WriteLine(e.Message);
+            // Console.WriteLine(e.Message);
         }
 
         return _solution;
