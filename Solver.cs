@@ -13,8 +13,7 @@ internal static class Solver
 
     private static bool TrySolve(Board board, Field field, List<int> availableValues)
     {
-        // Run backwards as we want to test biggest numbers first.
-        for (var i = availableValues.Count - 1; i >= 0; i--)
+        for (var i = 0; i < availableValues.Count; i++)
         {
             var value = availableValues[i];
             field.Set(value);
