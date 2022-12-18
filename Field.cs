@@ -29,4 +29,6 @@ internal class Field
             throw new ArgumentException($"Field ({Point})is predetermined and cannot be reset.");
         Value = null;
     }
+
+    public override string ToString() => $"({Point}) = {Value})";
 }

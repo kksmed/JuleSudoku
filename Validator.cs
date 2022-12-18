@@ -5,7 +5,7 @@ internal static class Validator
     /// <summary>
     /// 65.
     /// </summary>
-    private static readonly int ExpectedSum = Enumerable.Range(1, Board.Size * Board.Size).Sum() / Board.Size;
+    public static readonly int ExpectedSum = Enumerable.Range(1, Board.Size * Board.Size).Sum() / Board.Size;
 
     public static bool ValidateBoard(Board board)
         => ValidateLocked(board) && ValidateRows(board) && ValidateColumns(board) && ValidateDiagonals(board) && ValidateInitialBoard(board);
