@@ -3,37 +3,38 @@ namespace JuleSudoku;
 internal class Solver
 {
     private readonly Board _board;
+    private readonly bool _stopAtFirstSolution;
+    private readonly List<Field[]> _lineCache = new(Board.Size * 2 + 1);
 
     public int Updates { get; private set; }
 
     public List<int[][]> Solutions { get; }
     
-    private static readonly List<Field[]> LineCache = new(Board.Size * 2 + 1);
 
-    public Solver(Board board)
+    public Solver(Board board, bool stopAtFirstSolution = false)
     {
         _board = board;
+        _stopAtFirstSolution = stopAtFirstSolution;
         Updates = 0;
         Solutions = new List<int[][]>();
     }
 
-    
     public bool Solve()
     {
         var predeterminedValues = _board.Locked.Select(x => x.Value!.Value);
         var availableValues = Enumerable.Range(1, 25).Where(x => !predeterminedValues.Contains(x)).ToList();
 
-        TrySolveNextLine(availableValues);
+        SolveNextLine(availableValues);
         return Solutions.Any();
     }
 
-    private bool TrySolveNextLine(List<int> availableValues, int linesSolved = 0)
+    private bool SolveNextLine(List<int> availableValues, int linesSolved = 0)
     {
         var line = FindNextLine(linesSolved);
         if (line == null)
         {
             Solutions.Add(_board.Rows.Select(x => x.Select(y => y.Value!.Value).ToArray()).ToArray());
-            return false; // We want to find all the solutions
+            return _stopAtFirstSolution; // We want to find all the solutions
         }
         return TrySolveLine(line, availableValues, linesSolved);
     }
@@ -54,18 +55,16 @@ internal class Solver
             FindSubsetWithSpecifiedSum(new Stack<int>(availableValues), undeterminedFields.Count,
                     Validator.ExpectedSum - existingSum)
                 .ToList();
-        var suitableValuesForLine =
-            subsetWithSpecifiedSum
-                .SelectMany(x => x).Distinct().OrderBy(x => x).ToList(); // TODO: Maybe bad idea to fatten this out?
 
-        return TrySolveRestOfLine(new Stack<Field>(undeterminedFields), suitableValuesForLine,
-            availableValues, linesSolved);
+        return subsetWithSpecifiedSum
+            .Select(x => TrySolveRestOfLine(new Stack<Field>(undeterminedFields), x, availableValues, linesSolved))
+            .FirstOrDefault(x => x, false);
     }
 
     private bool TrySolveRestOfLine(Stack<Field> restOfline, List<int> lineAvailableValues,
         List<int> allAvailableValues, int linesSolved)
     {
-        if (!restOfline.Any()) return TrySolveNextLine(allAvailableValues, linesSolved + 1);
+        if (!restOfline.Any()) return SolveNextLine(allAvailableValues, linesSolved + 1);
         if (!lineAvailableValues.Any()) return false;
 
         var field = restOfline.Pop();
@@ -129,8 +128,8 @@ internal class Solver
     
     private Field[]? FindNextLine(int n)
     {
-        if (LineCache.Count >= n + 1)
-            return LineCache[n];
+        if (_lineCache.Count >= n + 1)
+            return _lineCache[n];
         
         var lineWithManyNumbers = _board.Rows.Concat(_board.Columns).Concat(_board.Diagonals)
             .Where(x => x.Any(y => !y.HasValue)).MinBy(x => x.Count(y => !y.HasValue));
@@ -139,7 +138,7 @@ internal class Solver
         if (lineWithManyNumbers == null)
             return null;
 
-        LineCache.Add(lineWithManyNumbers);
+        _lineCache.Add(lineWithManyNumbers);
         return lineWithManyNumbers;
     }
 }
