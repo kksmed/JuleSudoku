@@ -1,6 +1,6 @@
 namespace JuleSudoku;
 
-internal static class Validator
+static class Validator
 {
     /// <summary>
     /// 65.
@@ -10,7 +10,7 @@ internal static class Validator
     public static bool ValidateBoard(Board board)
         => ValidateLocked(board) && ValidateRows(board) && ValidateColumns(board) && ValidateDiagonals(board) && ValidateInitialBoard(board);
 
-    private static bool ValidateInitialBoard(Board board)
+    static bool ValidateInitialBoard(Board board)
     {
         for (var row = 0; row < Board.Size; row++)
         for (var column = 0; column < Board.Size; column++)
@@ -26,14 +26,14 @@ internal static class Validator
         ValidateLine(board.Columns[point.Column], lowestAvailableValues) &&
         board.GetDiagonals(point).All(x => ValidateLine(x, lowestAvailableValues));
 
-    private static bool ValidateRows(Board board) => board.Rows.All(x => ValidateLine(x, Enumerable.Range(1, 5)));
+    static bool ValidateRows(Board board) => board.Rows.All(x => ValidateLine(x, Enumerable.Range(1, 5)));
 
-    private static bool ValidateColumns(Board board) => board.Columns.All(x => ValidateLine(x, Enumerable.Range(1, 5)));
+    static bool ValidateColumns(Board board) => board.Columns.All(x => ValidateLine(x, Enumerable.Range(1, 5)));
 
-    private static bool ValidateDiagonals(Board board) =>
+    static bool ValidateDiagonals(Board board) =>
         board.Diagonals.All(x => ValidateLine(x, Enumerable.Range(1, 5)));
     
-    private static bool ValidateLine(Field[] line, IEnumerable<int> lowestAvailableValues)
+    static bool ValidateLine(Field[] line, IEnumerable<int> lowestAvailableValues)
     {
         var sum = line.Select(x => x.Value).Sum();
         if (sum > ExpectedSum) return false;
@@ -46,5 +46,5 @@ internal static class Validator
         return sum + unassignedMinSum <= ExpectedSum;
     }
 
-    private static bool ValidateLocked(Board board) => board.Locked.All(x => x.IsLocked);
+    static bool ValidateLocked(Board board) => board.Locked.All(x => x.IsLocked);
 }

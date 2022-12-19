@@ -1,15 +1,14 @@
 namespace JuleSudoku;
 
-internal class Solver
+class Solver
 {
-    private readonly Board _board;
-    private readonly bool _stopAtFirstSolution;
-    private readonly List<Field[]> _lineCache = new(Board.Size * 2 + 1);
+    readonly Board _board;
+    readonly bool _stopAtFirstSolution;
+    readonly List<Field[]> _lineCache = new(Board.Size * 2 + 1);
 
     public int Updates { get; private set; }
 
     public List<int[][]> Solutions { get; }
-    
 
     public Solver(Board board, bool stopAtFirstSolution = false)
     {
@@ -28,7 +27,7 @@ internal class Solver
         return Solutions.Any();
     }
 
-    private bool SolveNextLine(List<int> availableValues, int linesSolved = 0)
+    bool SolveNextLine(List<int> availableValues, int linesSolved = 0)
     {
         var line = FindNextLine(linesSolved);
         if (line == null)
@@ -39,7 +38,7 @@ internal class Solver
         return TrySolveLine(line, availableValues, linesSolved);
     }
 
-    private bool TrySolveLine(Field[] line, List<int> availableValues, int linesSolved)
+    bool TrySolveLine(Field[] line, List<int> availableValues, int linesSolved)
     {
         var undeterminedFields = new List<Field>(Board.Size);
         var existingSum = 0;
@@ -61,8 +60,8 @@ internal class Solver
             .FirstOrDefault(x => x, false);
     }
 
-    private bool TrySolveRestOfLine(Stack<Field> restOfline, List<int> lineAvailableValues,
-        List<int> allAvailableValues, int linesSolved)
+    bool TrySolveRestOfLine(Stack<Field> restOfline, List<int> lineAvailableValues, List<int> allAvailableValues,
+        int linesSolved)
     {
         if (!restOfline.Any()) return SolveNextLine(allAvailableValues, linesSolved + 1);
         if (!lineAvailableValues.Any()) return false;
@@ -74,31 +73,31 @@ internal class Solver
             var value = lineAvailableValues[i];
             field.Set(value);
             Updates++;
-            
-            if (!Validator.ValidateField(_board, field.Point, allAvailableValues.Take(5).ToList())) 
+
+            if (!Validator.ValidateField(_board, field.Point, allAvailableValues.Take(5).ToList()))
                 continue;
 
             // We need the index to insert it back in the correct place.
             var allListIndex = allAvailableValues.FindIndex(i, x => x == value);
             if (allListIndex < 0)
                 throw new InvalidOperationException($"Value not found in `{nameof(allAvailableValues)}`");
-            
+
             lineAvailableValues.RemoveAt(i);
             allAvailableValues.RemoveAt(allListIndex);
-            
+
             if (TrySolveRestOfLine(restOfline, lineAvailableValues, allAvailableValues, linesSolved))
                 return true;
-            
+
             lineAvailableValues.Insert(i, value);
             allAvailableValues.Insert(allListIndex, value);
         }
-        
+
         field.Reset();
         restOfline.Push(field);
         return false;
     }
 
-    private static IEnumerable<List<int>> FindSubsetWithSpecifiedSum(Stack<int> values, int amount, int sum)
+    static IEnumerable<List<int>> FindSubsetWithSpecifiedSum(Stack<int> values, int amount, int sum)
     {
         if (amount < 1)
             throw new ArgumentException("Amount is too low.", nameof(amount));
@@ -126,7 +125,7 @@ internal class Solver
         }
     }
     
-    private Field[]? FindNextLine(int n)
+    Field[]? FindNextLine(int n)
     {
         if (_lineCache.Count >= n + 1)
             return _lineCache[n];

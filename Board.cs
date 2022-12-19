@@ -1,8 +1,6 @@
-using System.Globalization;
-
 namespace JuleSudoku;
 
-internal class Board
+class Board
 {
     public const int Size = 5;
     
@@ -19,7 +17,7 @@ internal class Board
         Locked = predeterminedFields;
     }
 
-    private static Field[][] InitializeRows(Field[] predeterminedFields)
+    static Field[][] InitializeRows(Field[] predeterminedFields)
     {
         var listOfRows = new List<Field[]>(Size);
         for (var row = 0; row < Size; row++)
@@ -39,7 +37,7 @@ internal class Board
         return listOfRows.ToArray();
     }
     
-    private Field[][] InitializeColumns()
+    Field[][] InitializeColumns()
     {
         var listOfColumns = new List<Field[]>(Size);
         for (var column = 0; column < Size; column++)
@@ -57,7 +55,7 @@ internal class Board
         return listOfColumns.ToArray();
     }
 
-    private Field[][] InitializeDiagonals()
+    Field[][] InitializeDiagonals()
     {
         var listOfDiagonals = new List<Field[]>(2);
         for (var d = 0; d < 2; d++)

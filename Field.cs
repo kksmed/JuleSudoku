@@ -1,6 +1,6 @@
 namespace JuleSudoku;
 
-internal class Field
+class Field
 {
     public Field(Point point, int? value = null)
     {
