@@ -26,16 +26,29 @@ var initialValidation = Validator.ValidateBoard(board);
 if (!initialValidation)
     throw new InvalidOperationException("Invalid initial board.");
 
+var solver = new Solver(board);
+
 Console.WriteLine($"Start solving ({DateTime.Now})...");
 Console.WriteLine(" ");
 
 var stopWatch = Stopwatch.StartNew();
-
-var result = Solver.Solve(board);
-
+var solved = solver.Solve();
 stopWatch.Stop();
 
-Console.WriteLine(result ? "Solved!" : "Failure!");
+if (solved)
+{
+    Console.WriteLine("Solutions:");
+
+    foreach (var solution in solver.Solutions)
+    {
+        Console.WriteLine(Printer.NumbersToString(solution));
+        Console.WriteLine(string.Join("--", Enumerable.Repeat("---", Board.Size)));
+    }
+}
+else
+{
+    Console.WriteLine("Failure! Solution could not be found...");
+}
 
 Console.WriteLine($"Time: {stopWatch.Elapsed}");
-Console.WriteLine($"Updates in total: {Solver.Updates}");
+Console.WriteLine($"Updates in total: {solver.Updates}");

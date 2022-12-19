@@ -1,32 +1,44 @@
 namespace JuleSudoku;
 
-internal static class Solver
+internal class Solver
 {
-    public static int Updates { get; private set; }
+    private readonly Board _board;
+
+    public int Updates { get; private set; }
+
+    public List<int[][]> Solutions { get; }
     
-    public static bool Solve(Board board)
+    private static readonly List<Field[]> LineCache = new(Board.Size * 2 + 1);
+
+    public Solver(Board board)
     {
+        _board = board;
         Updates = 0;
-        var predeterminedValues = board.Locked.Select(x => x.Value!.Value);
+        Solutions = new List<int[][]>();
+    }
+
+    
+    public bool Solve()
+    {
+        var predeterminedValues = _board.Locked.Select(x => x.Value!.Value);
         var availableValues = Enumerable.Range(1, 25).Where(x => !predeterminedValues.Contains(x)).ToList();
 
-        return TrySolveNextLine(board, availableValues);
+        TrySolveNextLine(availableValues);
+        return Solutions.Any();
     }
 
-    private static bool TrySolveNextLine(Board board, List<int> availableValues, int linesSolved = 0)
+    private bool TrySolveNextLine(List<int> availableValues, int linesSolved = 0)
     {
-        var line = FindNextLine(board, linesSolved);
+        var line = FindNextLine(linesSolved);
         if (line == null)
         {
-            Console.WriteLine($"Solution after updates: {Updates}");
-            Console.WriteLine(board.ToString());
-
+            Solutions.Add(_board.Rows.Select(x => x.Select(y => y.Value!.Value).ToArray()).ToArray());
             return false; // We want to find all the solutions
         }
-        return TrySolveLine(board, line, availableValues, linesSolved);
+        return TrySolveLine(line, availableValues, linesSolved);
     }
 
-    private static bool TrySolveLine(Board board, Field[] line, List<int> availableValues, int linesSolved)
+    private bool TrySolveLine(Field[] line, List<int> availableValues, int linesSolved)
     {
         var undeterminedFields = new List<Field>(Board.Size);
         var existingSum = 0;
@@ -46,14 +58,14 @@ internal static class Solver
             subsetWithSpecifiedSum
                 .SelectMany(x => x).Distinct().OrderBy(x => x).ToList(); // TODO: Maybe bad idea to fatten this out?
 
-        return TrySolveRestOfLine(board, new Stack<Field>(undeterminedFields), suitableValuesForLine,
+        return TrySolveRestOfLine(new Stack<Field>(undeterminedFields), suitableValuesForLine,
             availableValues, linesSolved);
     }
 
-    private static bool TrySolveRestOfLine(Board board, Stack<Field> restOfline, List<int> lineAvailableValues,
+    private bool TrySolveRestOfLine(Stack<Field> restOfline, List<int> lineAvailableValues,
         List<int> allAvailableValues, int linesSolved)
     {
-        if (!restOfline.Any()) return TrySolveNextLine(board, allAvailableValues, linesSolved + 1);
+        if (!restOfline.Any()) return TrySolveNextLine(allAvailableValues, linesSolved + 1);
         if (!lineAvailableValues.Any()) return false;
 
         var field = restOfline.Pop();
@@ -64,7 +76,7 @@ internal static class Solver
             field.Set(value);
             Updates++;
             
-            if (!Validator.ValidateField(board, field.Point, allAvailableValues.Take(5).ToList())) 
+            if (!Validator.ValidateField(_board, field.Point, allAvailableValues.Take(5).ToList())) 
                 continue;
 
             // We need the index to insert it back in the correct place.
@@ -75,7 +87,7 @@ internal static class Solver
             lineAvailableValues.RemoveAt(i);
             allAvailableValues.RemoveAt(allListIndex);
             
-            if (TrySolveRestOfLine(board, restOfline, lineAvailableValues, allAvailableValues, linesSolved))
+            if (TrySolveRestOfLine(restOfline, lineAvailableValues, allAvailableValues, linesSolved))
                 return true;
             
             lineAvailableValues.Insert(i, value);
@@ -114,15 +126,13 @@ internal static class Solver
             }
         }
     }
-
-    private static readonly List<Field[]> LineCache = new(11);
-
-    private static Field[]? FindNextLine(Board board, int n)
+    
+    private Field[]? FindNextLine(int n)
     {
         if (LineCache.Count >= n + 1)
             return LineCache[n];
         
-        var lineWithManyNumbers = board.Rows.Concat(board.Columns).Concat(board.Diagonals)
+        var lineWithManyNumbers = _board.Rows.Concat(_board.Columns).Concat(_board.Diagonals)
             .Where(x => x.Any(y => !y.HasValue)).MinBy(x => x.Count(y => !y.HasValue));
         // TODO: Diff to mid: (Abs(65/2-SUM)) ?
 

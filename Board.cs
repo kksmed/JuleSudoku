@@ -87,10 +87,5 @@ internal class Board
             yield return Diagonals[1];
     }
 
-    public override string ToString()
-    {
-        return string.Join(Environment.NewLine,
-            Rows.Select(x =>
-                string.Join(" | ", x.Select(y => (y.Value?.ToString(CultureInfo.InvariantCulture) ?? "").PadLeft(2)))));
-    }
+    public override string ToString() => Printer.FieldsToString(Rows);
 }
