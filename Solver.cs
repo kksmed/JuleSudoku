@@ -1,6 +1,6 @@
 namespace JuleSudoku;
 
-class Solver
+class Solver : ISolver
 {
     readonly Board _board;
     readonly bool _stopAtFirstSolution;
