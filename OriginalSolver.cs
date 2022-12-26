@@ -1,6 +1,7 @@
+/*
 namespace JuleSudoku;
 
-class Solver : ISolver
+class OriginalSolver : ISolver
 {
     readonly Board _board;
     readonly bool _stopAtFirstSolution;
@@ -10,7 +11,7 @@ class Solver : ISolver
 
     public List<int[][]> Solutions { get; }
 
-    public Solver(Board board, bool stopAtFirstSolution = false)
+    public OriginalSolver(Board board, bool stopAtFirstSolution = false)
     {
         _board = board;
         _stopAtFirstSolution = stopAtFirstSolution;
@@ -21,6 +22,7 @@ class Solver : ISolver
     public bool Solve()
     {
         var predeterminedValues = _board.Locked.Select(x => x.Value!.Value);
+        
         var availableValues = Enumerable.Range(1, 25).Where(x => !predeterminedValues.Contains(x)).ToList();
 
         SolveNextLine(availableValues);
@@ -141,3 +143,4 @@ class Solver : ISolver
         return lineWithManyNumbers;
     }
 }
+*/

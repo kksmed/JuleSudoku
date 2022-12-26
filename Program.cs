@@ -26,7 +26,7 @@ var initialValidation = Validator.ValidateBoard(board);
 if (!initialValidation)
     throw new InvalidOperationException("Invalid initial board.");
 
-var solver = new Solver(board);
+var solver = new SofieSolver(board);
 
 Console.WriteLine($"Start solving ({DateTime.Now})...");
 Console.WriteLine(" ");
